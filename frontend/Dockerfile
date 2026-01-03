@@ -16,7 +16,6 @@ COPY vite.config.ts ./
 COPY tsconfig*.json ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
-COPY postcss.config.js* ./
 COPY eslint.config.js ./
 COPY src/ ./src/
 RUN npm run build
