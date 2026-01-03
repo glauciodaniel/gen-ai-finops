@@ -16,13 +16,15 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, s
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
+from sqlalchemy.orm import Session
 
 from api.models import (
     OracleRequest, OracleResponse,
     ArchitectRequest, ArchitectResponse,
     ScraperStatusResponse, ScraperRunResponse,
     HealthResponse, QueryResponse, QueryResult,
-    LoginRequest, TokenResponse, UserResponse
+    LoginRequest, TokenResponse, UserResponse,
+    RegisterRequest, RegisterResponse
 )
 
 from utils.pricing_knowledge_base import PricingKnowledgeBase
@@ -35,6 +37,8 @@ from utils.auth import (
     get_current_user, get_current_user_optional
 )
 from utils.rate_limit import setup_rate_limiting, rate_limit_decorator, get_rate_limit_config
+from db.database import get_db, engine, Base
+from db import crud
 
 # Load environment variables
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
@@ -103,18 +107,14 @@ async def log_requests(request: Request, call_next):
         )
         raise
 
+# Initialize database tables (if not exists)
+Base.metadata.create_all(bind=engine)
+
 # Initialize services
 kb = PricingKnowledgeBase()
 oracle = PricingOracle(kb)
 architect = CostArchitect(kb)
 executor = ThreadPoolExecutor(max_workers=2)
-
-# In-memory user store (for demo - use database in production)
-# In production, use a proper database
-DEMO_USERS = {
-    "admin": get_password_hash("admin123"),
-    "user": get_password_hash("user123"),
-}
 
 
 @app.get("/", tags=["General"])
@@ -152,27 +152,16 @@ async def health_check():
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=TokenResponse, tags=["Authentication"])
 @rate_limit_decorator(calls=5, period="minute")
-async def login(request: LoginRequest):
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
     Authenticate user and return JWT token.
-    
-    Demo credentials:
-    - username: admin, password: admin123
-    - username: user, password: user123
     """
     try:
-        # Check if user exists
-        if request.username not in DEMO_USERS:
-            logger.warning("Login attempt failed", username=request.username, reason="user_not_found")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password"
-            )
+        # Verify user credentials using database
+        user = crud.verify_user_password(db, request.username, request.password)
         
-        # Verify password
-        hashed_password = DEMO_USERS[request.username]
-        if not verify_password(request.password, hashed_password):
-            logger.warning("Login attempt failed", username=request.username, reason="invalid_password")
+        if not user:
+            logger.warning("Login attempt failed", username=request.username, reason="invalid_credentials")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect username or password"
@@ -185,7 +174,7 @@ async def login(request: LoginRequest):
             expires_delta=access_token_expires
         )
         
-        logger.info("User logged in successfully", username=request.username)
+        logger.info("User logged in successfully", username=request.username, user_id=user.id)
         
         return TokenResponse(
             access_token=access_token,
@@ -198,6 +187,52 @@ async def login(request: LoginRequest):
     except Exception as e:
         logger.error("Login error", error=str(e))
         raise HTTPException(status_code=500, detail="Authentication failed")
+
+
+@app.post("/api/auth/register", response_model=RegisterResponse, tags=["Authentication"])
+@rate_limit_decorator(calls=3, period="minute")
+async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+    """
+    try:
+        # Validate password strength (basic check)
+        if len(request.password) < 8:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 8 characters long"
+            )
+        
+        # Create user
+        try:
+            user = crud.create_user(
+                db=db,
+                username=request.username,
+                password=request.password,
+                email=request.email,
+                is_admin=False
+            )
+            
+            logger.info("User registered successfully", username=request.username, user_id=user.id)
+            
+            return RegisterResponse(
+                status="success",
+                message="User registered successfully",
+                username=user.username,
+                email=user.email
+            )
+        except ValueError as e:
+            logger.warning("Registration failed", username=request.username, reason=str(e))
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Registration error", error=str(e))
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @app.get("/api/auth/me", response_model=UserResponse, tags=["Authentication"])

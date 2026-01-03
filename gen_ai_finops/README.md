@@ -46,16 +46,41 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure API Key (Optional)
+### 2. Setup PostgreSQL Database
 
 ```bash
-cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY or ANTHROPIC_API_KEY
+# Install PostgreSQL (if not already installed)
+# On Ubuntu/Debian: sudo apt-get install postgresql
+# On macOS: brew install postgresql
+# On Windows: Download from postgresql.org
+
+# Create database
+createdb gen_ai_finops
+# Or using psql:
+# psql -U postgres
+# CREATE DATABASE gen_ai_finops;
+
+# Run migrations
+cd gen_ai_finops
+alembic upgrade head
+
+# Create admin user (optional)
+python scripts/create_admin_user.py
+```
+
+### 3. Configure Environment Variables
+
+```bash
+cp env.example .env
+# Edit .env and configure:
+# - DATABASE_URL (PostgreSQL connection string)
+# - OPENAI_API_KEY or ANTHROPIC_API_KEY (optional)
+# - JWT_SECRET_KEY (change in production!)
 ```
 
 **Note:** System works without API keys in fallback mode!
 
-### 3. Populate the Knowledge Base
+### 4. Populate the Knowledge Base
 
 ```bash
 # Option 1: Use real OpenAI pricing (scrapes or uses seed data)
@@ -66,7 +91,7 @@ python main.py
 GenAIFinOps> test
 ```
 
-### 4. Ask Pricing Questions
+### 5. Ask Pricing Questions
 
 ```bash
 # Command-line mode
@@ -79,7 +104,7 @@ GenAIFinOps> ask Compare GPT-4o and GPT-3.5 pricing
 GenAIFinOps> stats
 ```
 
-### 5. Start the API Server (NEW!)
+### 6. Start the API Server
 
 ```bash
 python main.py server

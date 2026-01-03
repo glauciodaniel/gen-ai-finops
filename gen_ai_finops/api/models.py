@@ -131,3 +131,18 @@ class UserResponse(BaseModel):
     """User response model."""
     username: str
     authenticated: bool
+
+
+class RegisterRequest(BaseModel):
+    """User registration request model."""
+    username: str = Field(..., description="Username", min_length=3, max_length=50)
+    password: str = Field(..., description="Password", min_length=8)
+    email: Optional[str] = Field(None, description="Email address", max_length=255)
+
+
+class RegisterResponse(BaseModel):
+    """User registration response model."""
+    status: str
+    message: str
+    username: str
+    email: Optional[str] = None

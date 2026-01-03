@@ -19,3 +19,6 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.9
 python-json-logger>=2.0.7
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0
