@@ -1,0 +1,30 @@
+# Dockerfile.backend
+FROM python:3.11-slim
+
+# Evita arquivos .pyc e garante logs em tempo real
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Instala dependências do sistema necessárias (opcional, mas bom pra garantir)
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copia e instala dependências Python
+COPY gen_ai_finops/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia o resto do código
+COPY gen_ai_finops/ ./gen_ai_finops/
+
+# Define o diretório de trabalho para o backend
+WORKDIR /app/gen_ai_finops
+
+# Expõe a porta
+EXPOSE 8000
+
+# Comando de execução (modo produção)
+# Usa uvicorn diretamente para melhor performance em produção
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
