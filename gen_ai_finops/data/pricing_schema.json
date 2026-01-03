@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLM Pricing Model Schema",
+  "description": "Standardized schema for LLM pricing information across all providers",
+  "type": "object",
+  "required": ["provider", "model_name", "input_cost_per_1m_tokens", "output_cost_per_1m_tokens", "last_updated"],
+  "properties": {
+    "provider": {
+      "type": "string",
+      "description": "Provider name (e.g., OpenAI, Anthropic, Google, AWS, Azure)",
+      "examples": ["OpenAI", "Anthropic", "Google", "AWS Bedrock", "Azure OpenAI", "Mistral"]
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Official model name",
+      "examples": ["gpt-4", "gpt-3.5-turbo", "claude-3-opus", "gemini-pro"]
+    },
+    "model_display_name": {
+      "type": "string",
+      "description": "Human-friendly display name",
+      "examples": ["GPT-4", "Claude 3 Opus", "Gemini Pro"]
+    },
+    "input_cost_per_1m_tokens": {
+      "type": "number",
+      "description": "Cost in USD per 1 million input tokens",
+      "minimum": 0,
+      "examples": [5.0, 3.0, 0.5]
+    },
+    "output_cost_per_1m_tokens": {
+      "type": "number",
+      "description": "Cost in USD per 1 million output tokens",
+      "minimum": 0,
+      "examples": [15.0, 15.0, 1.5]
+    },
+    "context_window": {
+      "type": "integer",
+      "description": "Maximum context window size in tokens",
+      "minimum": 0,
+      "examples": [8192, 32768, 128000, 200000]
+    },
+    "supports_function_calling": {
+      "type": "boolean",
+      "description": "Whether the model supports function/tool calling",
+      "default": false
+    },
+    "supports_vision": {
+      "type": "boolean",
+      "description": "Whether the model supports image inputs",
+      "default": false
+    },
+    "supports_json_mode": {
+      "type": "boolean",
+      "description": "Whether the model supports JSON output mode",
+      "default": false
+    },
+    "max_output_tokens": {
+      "type": "integer",
+      "description": "Maximum output tokens per request",
+      "minimum": 0,
+      "examples": [4096, 8192, 16384]
+    },
+    "training_data_cutoff": {
+      "type": "string",
+      "description": "Knowledge cutoff date",
+      "format": "date",
+      "examples": ["2023-04", "2024-01"]
+    },
+    "additional_features": {
+      "type": "array",
+      "description": "Additional model capabilities or features",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["streaming", "embeddings", "fine-tuning"]]
+    },
+    "pricing_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the official pricing page",
+      "examples": ["https://openai.com/pricing"]
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when this data was last updated (ISO 8601)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or caveats about pricing"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,21 @@
+# Generated from pyproject.toml
+# Install with: pip install -r requirements.txt
+
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+chromadb>=0.4.22
+langchain>=0.1.0
+langchain-community>=0.0.20
+langchain-openai>=0.0.5
+litellm>=1.17.0
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+tiktoken>=0.5.2
+lxml>=5.1.0
+html5lib>=1.1
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+slowapi>=0.1.9
+python-json-logger>=2.0.7
