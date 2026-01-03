@@ -45,7 +45,7 @@ services:
         echo 'Waiting for database...' &&
         sleep 5 &&
         python -m alembic upgrade head &&
-        python main.py server
+        uvicorn api.main:app --host 0.0.0.0 --port 8000
       "
 
   # Frontend
