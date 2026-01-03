@@ -24,8 +24,8 @@ RUN npm run build
 # Estágio 2: Produção (Servidor Nginx leve)
 FROM nginx:alpine
 
-# Copia a configuração customizada do Nginx (veja passo 3)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copia a configuração customizada do Nginx
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copia os arquivos gerados no estágio anterior para o Nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
