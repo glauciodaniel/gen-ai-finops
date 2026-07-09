@@ -58,6 +58,12 @@ const routes = [
         }),
       },
       {
+        path: 'optimizer',
+        lazy: async () => ({
+          Component: (await import('./pages/optimizer/index.tsx')).default,
+        }),
+      },
+      {
         path: 'pricing',
         children: [
           {

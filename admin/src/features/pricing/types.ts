@@ -64,3 +64,63 @@ export interface PricingStats {
   lastScrapeAt: string | null
   lastScrapeStatus: ScrapeRun['status'] | null
 }
+
+export interface OptimizerRequirements {
+  requireTools: boolean
+  requireVision: boolean
+  requireJson: boolean
+  minContextWindow: number | null
+  qualityTier: 'basic' | 'balanced' | 'premium'
+  modality: 'text' | 'embedding' | 'image' | 'audio'
+}
+
+export interface OptimizerUsage {
+  inputTokensPerRequest: number
+  outputTokensPerRequest: number
+  monthlyRequests: number
+}
+
+export interface OptimizerRecommendation {
+  id: number
+  slug: string
+  displayName: string
+  providerSlug: string
+  providerName: string
+  modality: string
+  contextWindow: number | null
+  supportsTools: boolean
+  supportsVision: boolean
+  supportsJson: boolean
+  inputPer1M: number
+  outputPer1M: number
+  cachedInputPer1M: number | null
+  score: number
+  monthlyCost: number
+  reasoning: string[]
+}
+
+export interface OptimizerSavings {
+  currentModelSlug: string
+  currentMonthlyCost: number
+  recommendedMonthlyCost: number
+  monthlySavings: number
+  annualSavings: number
+  savingsPercent: number
+}
+
+export interface OptimizerResult {
+  requirements: OptimizerRequirements
+  usage: OptimizerUsage
+  recommendations: OptimizerRecommendation[]
+  savings: OptimizerSavings | null
+  requirementsSource: 'user' | 'llm' | 'heuristic'
+}
+
+export interface OptimizerRequest {
+  useCase: string
+  inputTokensPerRequest?: number
+  outputTokensPerRequest?: number
+  monthlyRequests?: number
+  currentModelSlug?: string
+  topN?: number
+}
