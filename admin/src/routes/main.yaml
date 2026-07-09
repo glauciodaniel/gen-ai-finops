@@ -1,0 +1,29 @@
+routes:
+  - path: management
+    children:
+      - path:
+        lazy:
+          component: ./pages/management/index.tsx
+      - path: user
+        lazy:
+          component: ./pages/management/user/index.tsx
+      - path: role
+        lazy:
+          component: ./pages/management/role/index.tsx
+      - path: route
+        lazy:
+          component: ./pages/management/route/index.tsx
+      - path: screen
+        lazy:
+          component: ./pages/management/screen/index.tsx
+      - path: setting
+        children:
+          - path:
+            lazy:
+              component: ./pages/management/setting/index.tsx
+          - path: :slug
+            lazy:
+              component: ./pages/management/setting/forms.tsx
+      - path: menu
+        lazy:
+          component: ./pages/management/menu/index.tsx

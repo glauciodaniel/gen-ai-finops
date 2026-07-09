@@ -1,0 +1,15 @@
+{
+  "create": "Create User",
+  "createText": "Fill the user informations.",
+  "createTooltip": "Create new user",
+  "delete": "Delete User",
+  "deleteText": "Are you sure to delete these user?",
+  "deleteTooltip": "Delete the selected user",
+  "edit": "Edit User",
+  "editText": "View and edit user information.",
+  "editTooltip": "Edit the selected user",
+  "name": "Name",
+  "email": "Email",
+  "password": "Password",
+  "registered": "Registered"
+}

@@ -1,0 +1,19 @@
+{
+  "delete": "Delete",
+  "remove": "Remove",
+  "edit": "Edit",
+  "create": "Create",
+  "apply": "Apply",
+  "cancel": "Cancel",
+  "details": "Details",
+  "save": "Save",
+  "ok": "Ok",
+  "item": "item",
+  "items": "items",
+  "selected": "selected",
+  "selecting": "Selecting",
+  "select": "Select",
+  "add": "Add",
+  "emptyList": "Empty list",
+  "loading": "Loading"
+}

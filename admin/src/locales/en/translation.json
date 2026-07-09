@@ -1,0 +1,14 @@
+{
+  "en": "English",
+  "pt": "Portuguese",
+  "slogan": "Administration Panel",
+  "selectTimezone": "Select Timezone",
+  "apply": "Apply",
+  "name": "Name",
+  "description": "Description",
+  "slug": "Slug",
+  "title": "Title",
+  "body": "Content",
+  "dateFormat": "mmMMM d, yyyy",
+  "updated": "Last update"
+}
