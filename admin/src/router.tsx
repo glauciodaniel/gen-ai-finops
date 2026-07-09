@@ -58,6 +58,38 @@ const routes = [
         }),
       },
       {
+        path: 'pricing',
+        children: [
+          {
+            path: '',
+            lazy: async () => ({
+              Component: (await import('./pages/pricing/index.tsx')).default,
+            }),
+          },
+          {
+            path: 'models',
+            lazy: async () => ({
+              Component: (await import('./pages/pricing/models/index.tsx'))
+                .default,
+            }),
+          },
+          {
+            path: 'history',
+            lazy: async () => ({
+              Component: (await import('./pages/pricing/history/index.tsx'))
+                .default,
+            }),
+          },
+          {
+            path: 'scrape-runs',
+            lazy: async () => ({
+              Component: (await import('./pages/pricing/scrape-runs/index.tsx'))
+                .default,
+            }),
+          },
+        ],
+      },
+      {
         path: 'management',
         children: [
           {

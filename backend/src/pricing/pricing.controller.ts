@@ -57,6 +57,20 @@ export class PricingController {
     );
   }
 
+  @Get('compare')
+  compareModels(@Query('models') models?: string) {
+    const slugs = (models ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    return this.pricingService.compareModels(slugs);
+  }
+
+  @Get('stats')
+  getStats() {
+    return this.pricingService.getStats();
+  }
+
   @Post('ingest')
   @UseGuards(ServiceTokenGuard)
   ingest(@Body() batch: IngestBatchDto): Promise<IngestResult> {

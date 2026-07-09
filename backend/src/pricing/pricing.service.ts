@@ -68,4 +68,41 @@ export class PricingService {
       take: limit,
     });
   }
+
+  async compareModels(slugs: string[]) {
+    if (!slugs.length) return { items: [] };
+
+    const models = await this.prisma.ai_model.findMany({
+      where: { slug: { in: slugs } },
+      include: {
+        provider: { select: { slug: true, name: true } },
+        prices: { orderBy: { effective_from: 'desc' }, take: 1 },
+      },
+    });
+
+    const found = new Set(models.map((m) => m.slug));
+    const missing = slugs.filter((s) => !found.has(s));
+
+    return { items: models, missing };
+  }
+
+  async getStats() {
+    const [providers, activeModels, totalPrices, lastRun] = await Promise.all([
+      this.prisma.provider.count(),
+      this.prisma.ai_model.count({ where: { deprecated: false } }),
+      this.prisma.model_price.count(),
+      this.prisma.scrape_run.findFirst({
+        where: { status: { in: ['success', 'partial'] } },
+        orderBy: { finished_at: 'desc' },
+      }),
+    ]);
+
+    return {
+      providers,
+      activeModels,
+      priceRecords: totalPrices,
+      lastScrapeAt: lastRun?.finished_at ?? null,
+      lastScrapeStatus: lastRun?.status ?? null,
+    };
+  }
 }
