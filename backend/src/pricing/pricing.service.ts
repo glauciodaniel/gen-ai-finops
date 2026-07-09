@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@hedhog/prisma';
 
 @Injectable()
@@ -42,5 +42,30 @@ export class PricingService {
     ]);
 
     return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  }
+
+  async getModelHistory(slug: string, days: number) {
+    const model = await this.prisma.ai_model.findFirst({
+      where: { slug },
+      include: { provider: { select: { slug: true, name: true } } },
+    });
+    if (!model) throw new NotFoundException(`Model ${slug} not found`);
+
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const prices = await this.prisma.model_price.findMany({
+      where: { model_id: model.id, effective_from: { gte: since } },
+      orderBy: { effective_from: 'asc' },
+    });
+
+    return { model, prices };
+  }
+
+  async getScrapeRuns(limit = 20) {
+    return this.prisma.scrape_run.findMany({
+      orderBy: { started_at: 'desc' },
+      take: limit,
+    });
   }
 }

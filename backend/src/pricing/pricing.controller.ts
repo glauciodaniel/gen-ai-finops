@@ -1,9 +1,23 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PricingService } from './pricing.service';
+import { IngestService } from './ingest.service';
+import { IngestBatchDto, IngestResult } from './dto/ingest.dto';
+import { ServiceTokenGuard } from './guards/service-token.guard';
 
 @Controller('pricing')
 export class PricingController {
-  constructor(private readonly pricingService: PricingService) {}
+  constructor(
+    private readonly pricingService: PricingService,
+    private readonly ingestService: IngestService,
+  ) {}
 
   @Get('providers')
   getProviders() {
@@ -20,8 +34,32 @@ export class PricingController {
     return this.pricingService.getModels({
       provider,
       modality,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 20,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 20,
     });
+  }
+
+  @Get('models/:slug/history')
+  getModelHistory(
+    @Param('slug') slug: string,
+    @Query('days') days?: string,
+  ) {
+    return this.pricingService.getModelHistory(
+      slug,
+      days ? parseInt(days, 10) : 30,
+    );
+  }
+
+  @Get('scrape-runs')
+  getScrapeRuns(@Query('limit') limit?: string) {
+    return this.pricingService.getScrapeRuns(
+      limit ? parseInt(limit, 10) : 20,
+    );
+  }
+
+  @Post('ingest')
+  @UseGuards(ServiceTokenGuard)
+  ingest(@Body() batch: IngestBatchDto): Promise<IngestResult> {
+    return this.ingestService.ingest(batch);
   }
 }
