@@ -28,12 +28,12 @@ export class CandidatesRanker {
       where,
       include: {
         provider: { select: { slug: true, name: true } },
-        prices: { orderBy: { effective_from: 'desc' }, take: 1 },
+        model_price: { orderBy: { effective_from: 'desc' }, take: 1 },
       },
     });
 
     return rows
-      .filter((r: any) => r.prices.length > 0)
+      .filter((r: any) => r.model_price.length > 0)
       .map((r: any) => this.toCandidate(r));
   }
 
@@ -42,10 +42,10 @@ export class CandidatesRanker {
       where: { slug },
       include: {
         provider: { select: { slug: true, name: true } },
-        prices: { orderBy: { effective_from: 'desc' }, take: 1 },
+        model_price: { orderBy: { effective_from: 'desc' }, take: 1 },
       },
     });
-    if (!row || row.prices.length === 0) return null;
+    if (!row || row.model_price.length === 0) return null;
     return this.toCandidate(row);
   }
 
@@ -121,7 +121,7 @@ export class CandidatesRanker {
   }
 
   private toCandidate(row: any): CandidateModel {
-    const price = row.prices[0];
+    const price = row.model_price[0];
     return {
       id: row.id,
       slug: row.slug,

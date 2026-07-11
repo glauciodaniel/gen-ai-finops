@@ -1,35 +1,24 @@
-# Etapa 1: Construir a aplicação
-FROM node:18 AS builder
+# Stage 1: build
+FROM node:20-alpine AS builder
 
-# Definir o diretório de trabalho
 WORKDIR /app
 
-# Copiar os arquivos package.json e package-lock.json
+# VITE_ vars must be present at build time — Vite bakes them into the bundle.
+ARG VITE_API_URL=http://localhost:3000
+ENV VITE_API_URL=${VITE_API_URL}
+
 COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
-# Instalar as dependências
-RUN npm install
-
-# Copiar o código da aplicação
 COPY . .
-
-# Executar o build da aplicação
 RUN npm run build
 
-# Etapa 2: Configurar o servidor Nginx
+# Stage 2: nginx
 FROM nginx:alpine
 
-# Copiar os arquivos construídos da etapa anterior
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Remover a configuração padrão do Nginx
 RUN rm /etc/nginx/conf.d/default.conf
-
-# Copiar a nova configuração do Nginx
 COPY nginx.conf /etc/nginx/conf.d
 
-# Expor a porta 80
 EXPOSE 80
-
-# Comando para iniciar o Nginx
 CMD ["nginx", "-g", "daemon off;"]

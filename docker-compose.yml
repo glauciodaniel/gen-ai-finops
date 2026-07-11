@@ -3,11 +3,11 @@ services:
     image: postgres:16-alpine
     container_name: gen_ai_finops_db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: gen_ai_finops
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-gen_ai_finops}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,10 +26,12 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: "5432"
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      DB_DATABASE: gen_ai_finops
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/gen_ai_finops
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_DATABASE: ${POSTGRES_DB:-gen_ai_finops}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-gen_ai_finops}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3100,http://localhost:5173}
+      PRICING_INGEST_TOKEN: ${PRICING_INGEST_TOKEN:-dev-ingest-token-change-in-production}
     ports:
       - "3000:3000"
     depends_on:
@@ -41,6 +43,8 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
     container_name: gen_ai_finops_admin
     ports:
       - "3100:80"

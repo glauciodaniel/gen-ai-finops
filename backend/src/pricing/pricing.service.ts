@@ -29,7 +29,7 @@ export class PricingService {
         where,
         include: {
           provider: { select: { slug: true, name: true } },
-          prices: {
+          model_price: {
             orderBy: { effective_from: 'desc' },
             take: 1,
           },
@@ -76,7 +76,7 @@ export class PricingService {
       where: { slug: { in: slugs } },
       include: {
         provider: { select: { slug: true, name: true } },
-        prices: { orderBy: { effective_from: 'desc' }, take: 1 },
+        model_price: { orderBy: { effective_from: 'desc' }, take: 1 },
       },
     });
 

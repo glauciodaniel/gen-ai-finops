@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+import { PrismaModule } from '@hedhog/prisma';
 import { PricingController } from './pricing.controller';
 import { PricingService } from './pricing.service';
 import { IngestService } from './ingest.service';
 
 @Module({
+  imports: [PrismaModule],
   controllers: [PricingController],
   providers: [PricingService, IngestService],
   exports: [PricingService, IngestService],

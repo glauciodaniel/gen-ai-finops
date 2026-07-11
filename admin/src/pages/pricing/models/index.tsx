@@ -143,7 +143,7 @@ export default function Page() {
               </TableRow>
             )}
             {filtered.map((m) => {
-              const price = m.prices?.[0]
+              const price = m.model_price?.[0]
               return (
                 <TableRow key={m.id}>
                   <TableCell>{m.provider.name}</TableCell>

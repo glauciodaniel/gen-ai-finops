@@ -5,12 +5,17 @@ import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn'],
-    cors: true,
+    logger: ['error', 'warn', 'log'],
   });
 
+  const origins = (process.env.CORS_ORIGINS ??
+    'http://localhost:3100,http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: 'http://localhost:3100',
+    origin: origins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -20,11 +25,16 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: false,
     }),
   );
 
-  await app.listen(3000);
+  const port = Number(process.env.PORT ?? 3000);
+  await app.listen(port);
 
-  console.log(`API is running`);
+  console.log(
+    `API listening on port ${port}; CORS origins: ${origins.join(', ')}`,
+  );
 }
 bootstrap();

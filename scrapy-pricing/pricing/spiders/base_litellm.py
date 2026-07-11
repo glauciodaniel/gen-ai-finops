@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Iterable
+from typing import Any, AsyncIterator
 
 import scrapy
 
@@ -19,13 +19,16 @@ class BaseLiteLLMSpider(scrapy.Spider):
 
     provider_slug: str = ""
     match_prefixes: tuple[str, ...] = ()
+    # Optional: extra litellm_provider values beyond `provider_slug`. Google's
+    # models, for example, live under "gemini" / "vertex_ai-language-models".
+    match_litellm_providers: tuple[str, ...] = ()
     default_modality = "text"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.log_ = logging.getLogger(self.__class__.__name__)
 
-    def start_requests(self) -> Iterable[scrapy.Request]:
+    async def start(self) -> AsyncIterator[scrapy.Request]:
         url = self.settings.get("LITELLM_URL")
         yield scrapy.Request(url, callback=self.parse_litellm, dont_filter=True)
 
@@ -56,6 +59,8 @@ class BaseLiteLLMSpider(scrapy.Spider):
         provider_field = str(entry.get("litellm_provider", "")).lower()
         if provider_field == self.provider_slug:
             return True
+        if provider_field in self.match_litellm_providers:
+            return True
         for prefix in self.match_prefixes:
             if key.startswith(prefix):
                 return True
@@ -76,10 +81,14 @@ class BaseLiteLLMSpider(scrapy.Spider):
         item["slug"] = slug
         item["displayName"] = self._display_name(slug)
         item["modality"] = modality
-        item["contextWindow"] = entry.get("max_input_tokens") or entry.get(
-            "max_tokens"
-        )
-        item["maxOutput"] = entry.get("max_output_tokens")
+        # Drop non-positive values — DB column is nullable and downstream
+        # optimizer logic assumes positive integers.
+        ctx = entry.get("max_input_tokens") or entry.get("max_tokens")
+        if ctx and int(ctx) > 0:
+            item["contextWindow"] = int(ctx)
+        max_out = entry.get("max_output_tokens")
+        if max_out and int(max_out) > 0:
+            item["maxOutput"] = int(max_out)
         item["supportsTools"] = bool(entry.get("supports_function_calling"))
         item["supportsVision"] = bool(entry.get("supports_vision"))
         item["supportsJson"] = bool(entry.get("supports_response_schema"))

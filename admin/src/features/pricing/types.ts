@@ -17,7 +17,7 @@ export interface ModelPrice {
   scrape_run_id: number | null
 }
 
-export interface AiModelWithPrice {
+export interface AiModel {
   id: number
   provider_id: number
   slug: string
@@ -30,7 +30,10 @@ export interface AiModelWithPrice {
   supports_json: boolean
   deprecated: boolean
   provider: { slug: string; name: string }
-  prices: ModelPrice[]
+}
+
+export interface AiModelWithPrice extends AiModel {
+  model_price: ModelPrice[]
 }
 
 export interface ModelsResponse {
@@ -42,7 +45,7 @@ export interface ModelsResponse {
 }
 
 export interface ModelHistoryResponse {
-  model: AiModelWithPrice
+  model: AiModel
   prices: ModelPrice[]
 }
 

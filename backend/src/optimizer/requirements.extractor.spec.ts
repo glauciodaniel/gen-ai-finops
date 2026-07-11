@@ -41,4 +41,23 @@ describe('extractHeuristic', () => {
       extractHeuristic('long doc analysis, need 128k context').minContextWindow,
     ).toBe(128_000);
   });
+
+  it('extracts a context window hint expressed as "N thousand"', () => {
+    // Regression: prior implementation matched the pattern but returned N
+    // instead of N * 1000 for the "thousand" phrasing.
+    expect(
+      extractHeuristic('want at least 128 thousand tokens of context')
+        .minContextWindow,
+    ).toBe(128_000);
+  });
+
+  it('extracts a raw token count with commas', () => {
+    expect(
+      extractHeuristic('needs 200,000 tokens of context').minContextWindow,
+    ).toBe(200_000);
+  });
+
+  it('returns null when no context hint is present', () => {
+    expect(extractHeuristic('just a friendly chatbot').minContextWindow).toBeNull();
+  });
 });

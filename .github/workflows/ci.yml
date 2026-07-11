@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (NestJS)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gen_ai_finops
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install
+        working-directory: backend
+        run: npm ci
+      - name: Typecheck
+        working-directory: backend
+        run: npx tsc --noEmit
+      - name: Unit tests
+        working-directory: backend
+        run: npm test -- --ci
+      - name: Migrate + prisma generate (integration smoke)
+        working-directory: backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: '5432'
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_DATABASE: gen_ai_finops
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gen_ai_finops
+        run: |
+          mkdir -p src/prisma
+          cat > src/prisma/schema.prisma <<'EOF'
+          generator client {
+            provider = "prisma-client-js"
+            output   = "../../node_modules/.prisma/client"
+          }
+          datasource db {
+            provider = "postgresql"
+            url      = env("DATABASE_URL")
+          }
+          EOF
+          npm run migrate:up
+
+  admin:
+    name: Admin (Vite/React)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: admin/package-lock.json
+      - name: Install
+        working-directory: admin
+        run: npm ci --legacy-peer-deps
+      - name: Typecheck
+        working-directory: admin
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: admin
+        env:
+          VITE_API_URL: http://localhost:3000
+        run: npm run build
+
+  scrapy:
+    name: Scrapy pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        working-directory: scrapy-pricing
+        run: |
+          pip install -r requirements.txt pytest
+      - name: Unit tests
+        working-directory: scrapy-pricing
+        run: pytest tests/

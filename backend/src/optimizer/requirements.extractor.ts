@@ -158,10 +158,11 @@ const IMAGE_KEYWORDS = [
   'create image',
 ];
 
-const CONTEXT_PATTERNS = [
-  /(\d+)\s*[kK]\s*(?:tokens|context)?/,
-  /(\d+)\s*(?:thousand|k)/i,
-  /(\d[\d,]*)\s*tokens?/,
+// Each entry pairs a regex with the multiplier to apply to captured group 1.
+const CONTEXT_PATTERNS: { pattern: RegExp; multiplier: number }[] = [
+  { pattern: /(\d+)\s*[kK]\s*(?:tokens|context)?/, multiplier: 1000 },
+  { pattern: /(\d+)\s*(?:thousand|k)\b/i, multiplier: 1000 },
+  { pattern: /(\d[\d,]*)\s*tokens?/, multiplier: 1 },
 ];
 
 export function extractHeuristic(useCase: string): Requirements {
@@ -181,13 +182,13 @@ export function extractHeuristic(useCase: string): Requirements {
   else if (BASIC_KEYWORDS.some((k) => t.includes(k))) qualityTier = 'basic';
 
   let minContextWindow: number | null = null;
-  for (const pattern of CONTEXT_PATTERNS) {
+  for (const { pattern, multiplier } of CONTEXT_PATTERNS) {
     const m = pattern.exec(useCase);
     if (m) {
       const raw = m[1].replace(/,/g, '');
       const n = Number(raw);
       if (!Number.isNaN(n)) {
-        minContextWindow = pattern.source.includes('[kK]') ? n * 1000 : n;
+        minContextWindow = n * multiplier;
         break;
       }
     }
